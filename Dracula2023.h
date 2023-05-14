@@ -46,65 +46,53 @@
 #endif
 
 
+#define SW_RIGHT_OUTLANE            1
+#define SW_RIGHT_RETURN_LANE        2
+#define SW_LEFT_OUTLANE             3
+#define SW_LEFT_RETURN_LANE         4
+#define SW_1000_ADV_STAR            5
+#define SW_CREDIT_BUTTON            6
+#define SW_TILT                     7
+#define SW_OUTHOLE                  8
+#define SW_COIN_3                   9
+#define SW_COIN_1                   10
+#define SW_COIN_2                   11
+#define SW_DT4_UPPER_TARGET         12
+#define SW_SPIN_TARGET              15
+#define SW_SLAM_TILT                16
+#define SW_ROLLOVER_BUTTON          17
+#define SW_1000_ADV_BONUS           18
+#define SW_10_POINTS                19
+#define SW_DT4_UPPER_MID            20
 
+#define SW_DT3_MID                  21
+#define SW_Z_TARGET                 22
+#define SW_X_TARGET                 23
+#define SW_Y_TARGET                 24
+#define SW_DT4_LOWER_MID            28
+#define SW_DT3_LOWER                29
+#define SW_ROLLOVER_STAR            32
+#define SW_LOWER_THUMPER            33
+#define SW_RIGHT_THUMPER            34
+#define SW_LEFT_THUMPER             35
+#define SW_DT4_LOWER                36
+#define SW_DT3_UPPER                37
+#define SW_RIGHT_SLING              38
+#define SW_LEFT_SLING               39
+#define SW_EJECT_POCKET             40
 
-// Delete all these switch definitions when implementing a particular
-// machine. There's a conditional based on architecture here --
-// that should be deleted too. It's just here to provide base
-// functionality.
-#if (RPU_MPU_ARCHITECTURE<10)
-#define SW_DROP_3                   2
-#define SW_DROP_2                   3
-#define SW_DROP_1                   4
-#define SW_CREDIT_RESET             5
-// Different definitions for Tilt so I can have the same
-// code for different architectures
-#define SW_TILT                     6
-#define SW_PLUMB_TILT               6
-#define SW_ROLL_TILT                6
-#define SW_OUTHOLE                  7
-#define SW_COIN_3                   8
-#define SW_COIN_1                   9
-#define SW_COIN_2                   10
-#define SW_SLAM                     15
-#define SW_PLAYFIELD_TILT           15
-#define SW_SPINNER                  16
-#define SW_SAUCER                   23
-#define SW_RIGHT_SLING              30
-#define SW_LEFT_SLING               31
-#define SW_POP_BUMPER               32
-#else
-#define SW_PLUMB_TILT             0
-#define SW_ROLL_TILT              1
-#define SW_CREDIT_RESET           2
-#define SW_COIN_1                 3
-#define SW_COIN_2                 4
-#define SW_COIN_3                 5
-#define SW_SLAM                   6
-#define SW_HIGH_SCORE_RESET       7
-#define SW_SPINNER                12
-#define SW_OUTHOLE                19
-#define SW_LEFT_SLING             20
-#define SW_RIGHT_SLING            21
-#define SW_SAUCER                 22
-#define SW_DROP_1                 24
-#define SW_DROP_2                 25
-#define SW_DROP_3                 26
-#define SW_POP_BUMPER             35
-#define SW_PLAYFIELD_TILT         45
-#endif
-
-
-#define SOL_OUTHOLE                 0
-#define SOL_DROP_TARGET_RESET       1
-#define SOL_SAUCER                  7
-#define SOL_KNOCKER                 13
-#define SOLCONT_COIN_LOCKOUT        15
-
+#define SOL_LEFT_THUMPER            7
+#define SOL_RIGHT_THUMPER           8
+#define SOL_CENTER_THUMPER          9
+#define SOL_OUTHOLE                 10
+#define SOL_RIGHT_SLING             11
+#define SOL_EJECT_POCKET            12
+#define SOL_DT3_RESET               13
+#define SOL_DT4_RESET               15
 #define SOL_LEFT_SLING              16
-#define SOL_RIGHT_SLING             17
-#define SOL_POP_BUMPER              18
-
+#define SOL_KNOCKER                 17
+#define SOL_FLIPPERS                18
+#define SOL_COIN_LOCKOUT            19
 
 #if (RPU_MPU_ARCHITECTURE<10)
 // Machines with a -17, -35, 100, and 200 architecture
@@ -118,6 +106,6 @@
 struct PlayfieldAndCabinetSwitch SolenoidAssociatedSwitches[] = {
   { SW_RIGHT_SLING, SOL_RIGHT_SLING, 4},
   { SW_LEFT_SLING, SOL_LEFT_SLING, 4},
-  { SW_POP_BUMPER, SOL_POP_BUMPER, 4}
+  { SW_RIGHT_THUMPER, SOL_RIGHT_THUMPER, 4}
 };
 #endif

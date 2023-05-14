@@ -10,7 +10,7 @@
 #include "RPU_Config.h"
 #include "RPU.h"
 #include "DropTargets.h"
-#include "ExampleMachine.h"
+#include "Dracula2023.h"
 #include "SelfTestAndAudit.h"
 #include "AudioHandler.h"
 #include "LampAnimations.h"
@@ -379,10 +379,10 @@ void setup() {
   CurrentAchievements[3] = 0;
 
   // Initialize any drop target variables here
-  DropTargets.DefineSwitch(0, SW_DROP_1);
-  DropTargets.DefineSwitch(1, SW_DROP_2);
-  DropTargets.DefineSwitch(2, SW_DROP_3);
-  DropTargets.DefineResetSolenoid(0, SOL_DROP_TARGET_RESET);
+  DropTargets.DefineSwitch(0, SW_DT3_LOWER);
+  DropTargets.DefineSwitch(1, SW_DT3_MID);
+  DropTargets.DefineSwitch(2, SW_DT3_UPPER);
+  DropTargets.DefineResetSolenoid(0, SOL_DT3_RESET);
 
   Audio.SetMusicDuckingGain(12);
   Audio.QueueSound(SOUND_EFFECT_MACHINE_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime+1200);
@@ -1044,7 +1044,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     if (curState==MACHINE_STATE_ADJUST_CPC_CHUTE_2) chuteNum = 1;
     if (curState==MACHINE_STATE_ADJUST_CPC_CHUTE_3) chuteNum = 2;
     if (chuteNum!=0xFF) cpcSelection = GetCPCSelection(chuteNum);
-    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET, SW_SLAM);
+    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_BUTTON, SW_SLAM_TILT);
     if (chuteNum!=0xFF) {
       if (cpcSelection != GetCPCSelection(chuteNum)) {
         byte newCPC = GetCPCSelection(chuteNum);
@@ -1061,7 +1061,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
       else returnState += 1;
     }
 
-    if (curSwitch == SW_SLAM) {
+    if (curSwitch == SW_SLAM_TILT) {
       returnState = MACHINE_STATE_ATTRACT;
     }
 
@@ -1179,7 +1179,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     }
 
     // Change value, if the switch is hit
-    if (curSwitch == SW_CREDIT_RESET) {
+    if (curSwitch == SW_CREDIT_BUTTON) {
 
       if (CurrentAdjustmentByte && (AdjustmentType == ADJ_TYPE_MIN_MAX || AdjustmentType == ADJ_TYPE_MIN_MAX_DEFAULT)) {
         byte curVal = *CurrentAdjustmentByte;
@@ -1539,8 +1539,8 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 //    RPU_SetLampState(LAMP_HEAD_3_PLAYERS, 0);
 //    RPU_SetLampState(LAMP_HEAD_4_PLAYERS, 0);
 
-    if (RPU_ReadSingleSwitchState(SW_SAUCER)) {
-      RPU_PushToSolenoidStack(SOL_SAUCER, 16, true);
+    if (RPU_ReadSingleSwitchState(SW_EJECT_POCKET)) {
+      RPU_PushToSolenoidStack(SOL_EJECT_POCKET, 16, true);
     }
     
   }
@@ -1597,7 +1597,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 
   byte switchHit;
   while ( (switchHit = RPU_PullFirstFromSwitchStack()) != SWITCH_STACK_EMPTY ) {
-    if (switchHit == SW_CREDIT_RESET) {
+    if (switchHit == SW_CREDIT_BUTTON) {
       if (AddPlayer(true)) returnState = MACHINE_STATE_INIT_GAMEPLAY;
     }
     if (switchHit == SW_COIN_1 || switchHit == SW_COIN_2 || switchHit == SW_COIN_3) {
@@ -1702,9 +1702,9 @@ int InitGamePlay(boolean curStateChanged) {
     return MACHINE_STATE_INIT_GAMEPLAY;
   }
 */
-  if (RPU_ReadSingleSwitchState(SW_SAUCER)) {
+  if (RPU_ReadSingleSwitchState(SW_EJECT_POCKET)) {
     if (CurrentTime > (SaucerEjectTime+2500)) {
-      RPU_PushToSolenoidStack(SOL_SAUCER, 12, true);
+      RPU_PushToSolenoidStack(SOL_EJECT_POCKET, 12, true);
       SaucerEjectTime = CurrentTime;
     }
   }
@@ -2305,7 +2305,7 @@ int HandleSystemSwitches(int curState, byte switchHit) {
       AddCoinToAudit(SwitchToChuteNum(switchHit));
       AddCoin(SwitchToChuteNum(switchHit));
       break;
-    case SW_CREDIT_RESET:
+    case SW_CREDIT_BUTTON:
       if (MachineState == MACHINE_STATE_MATCH_MODE) {
         // If the first ball is over, pressing start again resets the game
         if (Credits >= 1 || FreePlayMode) {
@@ -2325,9 +2325,8 @@ int HandleSystemSwitches(int curState, byte switchHit) {
       // from the outhole to the re-shooter ramp
 //      MoveBallFromOutholeToRamp(true);
       break;
-    case SW_PLUMB_TILT:
+    case SW_TILT:
 //    case SW_ROLL_TILT:
-    case SW_PLAYFIELD_TILT:
       // This should be debounced
       if ((CurrentTime - LastTiltWarningTime) > TILT_WARNING_DEBOUNCE_TIME) {
         LastTiltWarningTime = CurrentTime;
@@ -2381,25 +2380,25 @@ void HandleGamePlaySwitches(byte switchHit) {
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
 
-    case SW_DROP_1:
-    case SW_DROP_2:
-    case SW_DROP_3:
+    case SW_DT3_UPPER:
+    case SW_DT3_MID:
+    case SW_DT3_LOWER:
       HandleDropTarget(switchHit);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
 
-    case SW_SPINNER:
+    case SW_SPIN_TARGET:
       CurrentScores[CurrentPlayer] += 100 * PlayfieldMultiplier;
 //      PlaySoundEffect(SOUND_EFFECT_SPINNER);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
 
-    case SW_SAUCER:
+    case SW_EJECT_POCKET:
       CurrentScores[CurrentPlayer] += PlayfieldMultiplier * 1000;
 //      PlaySoundEffect(SOUND_EFFECT_SAUCER);
-      RPU_PushToTimedSolenoidStack(SOL_SAUCER, 16, CurrentTime+1000, true);
+      RPU_PushToTimedSolenoidStack(SOL_EJECT_POCKET, 16, CurrentTime+1000, true);
       LastSwitchHitTime = CurrentTime;
       if (BallFirstSwitchHitTime == 0) BallFirstSwitchHitTime = CurrentTime;
       break;
@@ -2471,7 +2470,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
       }
       CreditResetPressStarted = 0;
     } else {
-      if (RPU_ReadSingleSwitchState(SW_CREDIT_RESET)) {
+      if (RPU_ReadSingleSwitchState(SW_CREDIT_BUTTON)) {
         if (TimeRequiredToResetGame != 99 && (CurrentTime - CreditResetPressStarted) >= ((unsigned long)TimeRequiredToResetGame*1000)) {
           // If the first ball is over, pressing start again resets the game
           if (Credits >= 1 || FreePlayMode) {

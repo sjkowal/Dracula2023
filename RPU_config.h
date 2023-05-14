@@ -33,7 +33,7 @@
 // Hardware Rev 100 (different order of magnitude because it's a different approach) plugs into the CPU socket
 // Hardware Rev 101 - first RPU CPU interposer release board
 // Hardware Rev 102 - second RPU (with display and WIFI socket)
-#define RPU_OS_HARDWARE_REV   3
+#define RPU_OS_HARDWARE_REV   2
 
 // Available Architectures (0-9 is for B/S Boards, 10-19 is for W)
 //  RPU_MPU_ARCHITECTURE 1 = -17, -35, 100, 200, or compatible
@@ -55,7 +55,7 @@
 //#define RPU_OS_USE_DIP_SWITCHES 
 //#define RPU_OS_USE_S_AND_T
 //#define RPU_OS_USE_DASH51
-//#define RPU_OS_USE_SB100
+#define RPU_OS_USE_SB100
 //#define RPU_OS_USE_SB300
 //#define RPU_OS_USE_WAV_TRIGGER
 //#define RPU_OS_USE_WAV_TRIGGER_1p3
@@ -92,7 +92,7 @@
 //  40            381 Hz
 //  35            434 Hz     (This would probably be good for 7-digit displays)
 //  34            446.4 Hz      
-#define RPU_OS_SOFTWARE_DISPLAY_INTERRUPT_INTERVAL  48  
+#define RPU_OS_SOFTWARE_DISPLAY_INTERRUPT_INTERVAL  46  
 //#define RPU_OS_ADJUSTABLE_DISPLAY_INTERRUPT
 
 #ifdef RPU_OS_USE_6_DIGIT_CREDIT_DISPLAY_WITH_7_DIGIT_DISPLAYS
@@ -142,7 +142,7 @@
 #define NUM_SWITCH_BYTES                8
 #define MAX_NUM_SWITCHES                64
  
-#if (RPU_MPU_ARCHITECTURE<13)
+#if (s<13)
 #define RPU_OS_MAX_DISPLAY_SCORE  999999
 #define RPU_OS_NUM_DIGITS       6
 #define RPU_OS_ALL_DIGITS_MASK    0x3F
