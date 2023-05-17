@@ -92,7 +92,7 @@
 //  40            381 Hz
 //  35            434 Hz     (This would probably be good for 7-digit displays)
 //  34            446.4 Hz      
-#define RPU_OS_SOFTWARE_DISPLAY_INTERRUPT_INTERVAL  46  
+#define RPU_OS_SOFTWARE_DISPLAY_INTERRUPT_INTERVAL  48  
 //#define RPU_OS_ADJUSTABLE_DISPLAY_INTERRUPT
 
 #ifdef RPU_OS_USE_6_DIGIT_CREDIT_DISPLAY_WITH_7_DIGIT_DISPLAYS
