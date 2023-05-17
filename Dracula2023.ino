@@ -218,7 +218,7 @@ unsigned long PlayfieldMultiplierExpiration;
 unsigned long BonusChanged;
 unsigned long BonusXAnimationStart;
 
-DropTargetBank DropTargets(3, 1, DROP_TARGET_TYPE_BLY_1, 50);
+DropTargetBank DropTargets(3, 1, DROP_TARGET_TYPE_STRN_1, 50);
 
 
 /******************************************************
@@ -452,10 +452,8 @@ void ShowShootAgainLamps() {
     unsigned long msRemaining = 5000;
     if (BallSaveEndTime!=0) msRemaining = BallSaveEndTime - CurrentTime;
     RPU_SetLampState(LAMP_SHOOT_AGAIN, 1, 0, (msRemaining < 5000) ? 100 : 500);
-    RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, 1, 0, (msRemaining < 5000) ? 100 : 500);
   } else {
     RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
-    RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
   }
 }
 
@@ -917,7 +915,6 @@ boolean AwardExtraBall() {
   } else {
     SamePlayerShootsAgain = true;
     RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
-    RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
     QueueNotification(SOUND_EFFECT_VP_EXTRA_BALL, 8);
   }
   return true;
@@ -1559,7 +1556,6 @@ int RunAttractMode(int curState, boolean curStateChanged) {
   } else if ((CurrentTime / 8000) % 2 == 0) {
 
     if (AttractLastHeadMode != 2) {
-      RPU_SetLampState(LAMP_HEAD_HIGH_SCORE, 1, 0, 250);
       RPU_SetLampState(LAMP_HEAD_GAME_OVER, 0);
       LastTimeScoreChanged = CurrentTime;
     }
@@ -1573,7 +1569,6 @@ int RunAttractMode(int curState, boolean curStateChanged) {
         }
         CurrentNumPlayers = 0;
       }
-      RPU_SetLampState(LAMP_HEAD_HIGH_SCORE, 0);
       RPU_SetLampState(LAMP_HEAD_GAME_OVER, 1);
       LastTimeScoreChanged = CurrentTime;
     }
@@ -1779,7 +1774,6 @@ int InitNewBall(bool curStateChanged) {
 
     if (BallSaveNumSeconds > 0) {
       RPU_SetLampState(LAMP_SHOOT_AGAIN, 1, 0, 500);
-      RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, 1, 0, 500);
     }
 
     BallSaveUsed = false;

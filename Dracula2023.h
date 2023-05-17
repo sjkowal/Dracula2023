@@ -3,48 +3,49 @@
 // for different architectures. This section should be deleted
 // when implementing a particular machine.
 
-// Delete all these lamp definitions when implementing a particular
-// machine. There's a conditional based on architecture here --
-// that should be deleted too. It's just here to provide base
-// functionality.
-#if (RPU_MPU_ARCHITECTURE<10)
-// These example lamp definitions come from Supersonic
-#define LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN  40
-#define LAMP_HEAD_MATCH                     41
-#define LAMP_SHOOT_AGAIN                    42
-#define LAMP_APRON_CREDIT                   43
-#define LAMP_HEAD_BIP                       48
-#define LAMP_HEAD_HIGH_SCORE                49
-#define LAMP_HEAD_GAME_OVER                 50
-#define LAMP_HEAD_TILT                      51
-#define LAMP_HEAD_1_PLAYER                  52
-#define LAMP_HEAD_2_PLAYER                  53
-#define LAMP_HEAD_3_PLAYER                  54
-#define LAMP_HEAD_4_PLAYER                  55
-#define LAMP_HEAD_PLAYER_1_UP               56
-#define LAMP_HEAD_PLAYER_2_UP               57
-#define LAMP_HEAD_PLAYER_3_UP               58
-#define LAMP_HEAD_PLAYER_4_UP               59
-#else
-// These example lamp definitions come from Stellar Wars
-#define LAMP_SHOOT_AGAIN                    0
-#define LAMP_HEAD_1_PLAYER                  49
-#define LAMP_HEAD_2_PLAYERS                 50
-#define LAMP_HEAD_3_PLAYERS                 51
-#define LAMP_HEAD_4_PLAYERS                 52
-#define LAMP_HEAD_MATCH                     53
-#define LAMP_HEAD_BALL_IN_PLAY              54
-#define LAMP_APRON_CREDITS                  55
-#define LAMP_HEAD_PLAYER_1_UP               56
-#define LAMP_HEAD_PLAYER_2_UP               57
-#define LAMP_HEAD_PLAYER_3_UP               58
-#define LAMP_HEAD_PLAYER_4_UP               59
-#define LAMP_HEAD_TILT                      60
-#define LAMP_HEAD_GAME_OVER                 61
-#define LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN  62
-#define LAMP_HEAD_HIGH_SCORE                63
-#endif
-
+#define LAMP_BONUS_2000                     0
+#define LAMP_BONUS_10000                    1
+#define LAMP_STAR_1                         2
+#define LAMP_Y                              7
+#define LAMP_SHOOT_AGAIN                    10
+#define LAMP_HEAD_BALLINPLAY                  12
+#define LAMP_HEAD_PLAYER_1                    13
+#define LAMP_HEAD_PLAYER_1_UP                 14
+#define LAMP_BONUS_4000                     15
+#define LAMP_BONUS_20000                    16
+#define LAMP_STAR_2                         17
+#define LAMP_BAT_1                          18
+#define LAMP_BAT_2                          19
+#define LAMP_BAT_3                          20
+#define LAMP_BAT_4                          21
+#define LAMP_X                              22
+#define LAMP_HEAD_MATCH                       25
+#define LAMP_HEAD_PLAYER_2                    28
+#define LAMP_HEAD_PLAYER_2_UP                 29
+#define LAMP_BONUS_6000                     30
+#define LAMP_STAR_3                         32
+#define LAMP_CAT_1                          33
+#define LAMP_CAT_2                          34
+#define LAMP_CAT_3                          35
+#define LAMP_CAT_4                          36
+#define LAMP_STAR_4                         37
+#define LAMP_7000_PTS                       40
+#define LAMP_LEFT_INLANE_5K                 41
+#define LAMP_HEAD_GAME_OVER                   42
+#define LAMP_HEAD_PLAYER_3                    43
+#define LAMP_HEAD_PLAYER_3_UP                 44
+#define LAMP_BONUS_8000                     45
+#define LAMP_1000_ADV_STAR                  47
+#define LAMP_STANDUP_SPECIAL                48
+#define LAMP_BONUS_5X                       49
+#define LAMP_BONUS_2X                       50
+#define LAMP_SPINNER_10X                    51
+#define LAMP_4000_PTS                       52
+#define LAMP_3000_PTS                       55
+#define LAMP_RIGHT_OUTLANE_XBALL            56
+#define LAMP_HEAD_TILT                        57
+#define LAMP_HEAD_PLAYER_4                    58
+#define LAMP_HEAD_PLAYER_4_UP                 59
 
 #define SW_RIGHT_OUTLANE            1
 #define SW_RIGHT_RETURN_LANE        2
@@ -81,17 +82,18 @@
 #define SW_LEFT_SLING               39
 #define SW_EJECT_POCKET             40
 
-#define SOL_LEFT_THUMPER            7
-#define SOL_RIGHT_THUMPER           8
-#define SOL_CENTER_THUMPER          9
-#define SOL_OUTHOLE                 10
-#define SOL_RIGHT_SLING             11
-#define SOL_EJECT_POCKET            12
-#define SOL_DT3_RESET               13
-#define SOL_DT4_RESET               15
-#define SOL_LEFT_SLING              16
-#define SOL_KNOCKER                 17
-#define SOL_FLIPPERS                18
+#define SOL_DT3_RESET               5
+#define SOL_KNOCKER                 6
+#define SOL_OUTHOLE                 7
+#define SOL_EJECT_POCKET            9
+#define SOL_DT4_RESET               10
+#define SOL_LEFT_THUMPER            11
+#define SOL_RIGHT_THUMPER           12
+#define SOL_LOWER_THUMPER           13
+#define SOL_RIGHT_SLING             14
+#define SOL_LEFT_SLING              15
+
+#define SOL_FLIPPERS                16
 #define SOL_COIN_LOCKOUT            19
 
 #if (RPU_MPU_ARCHITECTURE<10)
@@ -100,12 +102,14 @@
 // For those, you can define an array of solenoids and the switches
 // that will trigger them:
 
-#define NUM_SWITCHES_WITH_TRIGGERS          3 // total number of solenoid/switch pairs
-#define NUM_PRIORITY_SWITCHES_WITH_TRIGGERS 3 // This number should match the define above
+#define NUM_SWITCHES_WITH_TRIGGERS          5 // total number of solenoid/switch pairs
+#define NUM_PRIORITY_SWITCHES_WITH_TRIGGERS 5 // This number should match the define above
 
 struct PlayfieldAndCabinetSwitch SolenoidAssociatedSwitches[] = {
   { SW_RIGHT_SLING, SOL_RIGHT_SLING, 4},
   { SW_LEFT_SLING, SOL_LEFT_SLING, 4},
-  { SW_RIGHT_THUMPER, SOL_RIGHT_THUMPER, 4}
+  { SW_RIGHT_THUMPER, SOL_RIGHT_THUMPER, 4},
+  { SW_LEFT_THUMPER, SOL_LEFT_THUMPER, 4},
+  { SW_LOWER_THUMPER, SOL_LOWER_THUMPER, 4}
 };
 #endif
