@@ -167,7 +167,7 @@ unsigned long HighScore = 0;
 unsigned long AwardScores[3];
 unsigned long CreditResetPressStarted = 0;
 
-AudioHandler Audio;
+//AudioHandler Audio;
 
 
 
@@ -233,16 +233,18 @@ void ReadStoredParameters() {
     ChuteCoinsInProgress[count] = 0;
   }
  
-  HighScore = RPU_ReadULFromEEProm(RPU_HIGHSCORE_EEPROM_START_BYTE, 10000);
+  HighScore = RPU_ReadULFromEEProm(RPU_HIGHSCORE_EEPROM_START_BYTE, 19999);
   Credits = RPU_ReadByteFromEEProm(RPU_CREDITS_EEPROM_BYTE);
   if (Credits > MaximumCredits) Credits = MaximumCredits;
 
-  ReadSetting(EEPROM_FREE_PLAY_BYTE, 0);
-  FreePlayMode = (EEPROM.read(EEPROM_FREE_PLAY_BYTE)) ? true : false;
+  ReadSetting(EEPROM_FREE_PLAY_BYTE, 1);
+  //FreePlayMode = (EEPROM.read(EEPROM_FREE_PLAY_BYTE)) ? true : false;
+  FreePlayMode = true;
 
   BallSaveNumSeconds = ReadSetting(EEPROM_BALL_SAVE_BYTE, 15);
   if (BallSaveNumSeconds > 20) BallSaveNumSeconds = 20;
 
+/*
   SoundSelector = ReadSetting(EEPROM_SOUND_SELECTOR_BYTE, 3);
   if (SoundSelector > 8) SoundSelector = 3;
 
@@ -258,7 +260,7 @@ void ReadStoredParameters() {
   Audio.SetMusicVolume(MusicVolume);
   Audio.SetSoundFXVolume(SoundEffectsVolume);
   Audio.SetNotificationsVolume(CalloutsVolume);
-
+*/
   TournamentScoring = (ReadSetting(EEPROM_TOURNAMENT_SCORING_BYTE, 0)) ? true : false;
 
   MaxTiltWarnings = ReadSetting(EEPROM_TILT_WARNING_BYTE, 2);
@@ -299,7 +301,7 @@ void QueueDIAGNotification(unsigned short notificationNum) {
   // This is optional, but the machine can play an audio message at boot
   // time to indicate any errors and whether it's going to boot to original
   // or new code.
-  Audio.QueuePrioritizedNotification(notificationNum, 0, 10, CurrentTime);
+  //Audio.QueuePrioritizedNotification(notificationNum, 0, 10, CurrentTime);
 }
 
 void setup() {
@@ -311,9 +313,9 @@ void setup() {
   }
 
   // Set up the Audio handler in order to play boot messages
-  CurrentTime = millis();
-  Audio.InitDevices(AUDIO_PLAY_TYPE_WAV_TRIGGER | AUDIO_PLAY_TYPE_ORIGINAL_SOUNDS);
-  Audio.StopAllAudio();
+  // CurrentTime = millis();
+  //Audio.InitDevices(AUDIO_PLAY_TYPE_WAV_TRIGGER | AUDIO_PLAY_TYPE_ORIGINAL_SOUNDS);
+  //Audio.StopAllAudio();
 
   // Tell the OS about game-specific switches
   // (this is for software-controlled pop bumpers and slings)
@@ -355,8 +357,8 @@ void setup() {
   }
 
   if (initResult & RPU_RET_ORIGINAL_CODE_REQUESTED) {
-    QueueDIAGNotification(SOUND_EFFECT_DIAG_STARTING_ORIGINAL_CODE);
-    while (Audio.Update(millis()));
+    //QueueDIAGNotification(SOUND_EFFECT_DIAG_STARTING_ORIGINAL_CODE);
+    //while (Audio.Update(millis()));
     // Arduino should hang if original code is running
     while (1);
   }
@@ -384,8 +386,8 @@ void setup() {
   DropTargets.DefineSwitch(2, SW_DT3_UPPER);
   DropTargets.DefineResetSolenoid(0, SOL_DT3_RESET);
 
-  Audio.SetMusicDuckingGain(12);
-  Audio.QueueSound(SOUND_EFFECT_MACHINE_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime+1200);
+  // Audio.SetMusicDuckingGain(12);
+  // Audio.QueueSound(SOUND_EFFECT_MACHINE_START, AUDIO_PLAY_TYPE_WAV_TRIGGER, CurrentTime+1200);
 }
 
 byte ReadSetting(byte setting, byte defaultValue) {
@@ -813,8 +815,8 @@ boolean AddPlayer(boolean resetNumPlayers = false) {
     RPU_SetDisplayCredits(Credits, !FreePlayMode);
     RPU_SetCoinLockout(false);
   }
-  if (CurrentNumPlayers==1) Audio.StopAllAudio();
-  QueueNotification(SOUND_EFFECT_VP_ADD_PLAYER_1 + (CurrentNumPlayers - 1), 10);
+  //if (CurrentNumPlayers==1) Audio.StopAllAudio();
+  //QueueNotification(SOUND_EFFECT_VP_ADD_PLAYER_1 + (CurrentNumPlayers - 1), 10);
 
   RPU_WriteULToEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE, RPU_ReadULFromEEProm(RPU_TOTAL_PLAYS_EEPROM_START_BYTE) + 1);
 
@@ -1018,17 +1020,17 @@ int RunSelfTest(int curState, boolean curStateChanged) {
   if (curStateChanged) {
     // Send a stop-all command and reset the sample-rate offset, in case we have
     //  reset while the WAV Trigger was already playing.
-    Audio.StopAllAudio();
+    //Audio.StopAllAudio();
     RPU_TurnOffAllLamps();
 //    PlaySoundEffect(SOUND_EFFECT_SELF_TEST_MODE_START-curState, 0, true);
-    Audio.StopAllAudio();
+    //Audio.StopAllAudio();
 //    int modeMapping = SelfTestStateToCalloutMap[-1 - curState];
 //    Audio.PlaySound((unsigned short)modeMapping, AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
-    Audio.PlaySound((unsigned short)(SOUND_EFFECT_SELF_TEST_MODE_START-curState), AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
+    //Audio.PlaySound((unsigned short)(SOUND_EFFECT_SELF_TEST_MODE_START-curState), AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
   } else {
     if (SoundSettingTimeout && CurrentTime>SoundSettingTimeout) {
       SoundSettingTimeout = 0;
-      Audio.StopAllAudio();
+      //Audio.StopAllAudio();
     }
   }
 
@@ -1045,8 +1047,8 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     if (chuteNum!=0xFF) {
       if (cpcSelection != GetCPCSelection(chuteNum)) {
         byte newCPC = GetCPCSelection(chuteNum);
-        Audio.StopAllAudio();
-        Audio.PlaySound(SOUND_EFFECT_SELF_TEST_CPC_START+newCPC, AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
+        //Audio.StopAllAudio();
+        //Audio.PlaySound(SOUND_EFFECT_SELF_TEST_CPC_START+newCPC, AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
       }
     }
   } else {
@@ -1202,6 +1204,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
         *CurrentAdjustmentByte = curVal;
         if (CurrentAdjustmentStorageByte) EEPROM.write(CurrentAdjustmentStorageByte, curVal);
 
+/*
         if (curState==MACHINE_STATE_ADJUST_SOUND_SELECTOR) {
           Audio.StopAllAudio();
           Audio.PlaySound(SOUND_EFFECT_SELF_TEST_AUDIO_OPTIONS_START+curVal, AUDIO_PLAY_TYPE_WAV_TRIGGER, 10);
@@ -1221,6 +1224,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
           Audio.SetNotificationsVolume(curVal);
           SoundSettingTimeout = CurrentTime+3000;
         }
+*/
         
       } else if (CurrentAdjustmentByte && AdjustmentType == ADJ_TYPE_LIST) {
         byte valCount = 0;
@@ -1284,7 +1288,7 @@ void PlayBackgroundSong(unsigned int songNum) {
 
   if (MusicVolume==0) return;
 
-  Audio.PlayBackgroundSong(songNum);
+  //Audio.PlayBackgroundSong(songNum);
 }
 
 
@@ -1296,7 +1300,7 @@ void PlaySoundEffect(unsigned int soundEffectNum) {
 
   // Play digital samples on the WAV trigger (numbered same
   // as SOUND_EFFECT_ defines)
-  Audio.PlaySound(soundEffectNum, AUDIO_PLAY_TYPE_WAV_TRIGGER);
+  //Audio.PlaySound(soundEffectNum, AUDIO_PLAY_TYPE_WAV_TRIGGER);
 
   // SOUND_EFFECT_ defines can also be translated into
   // commands for the sound card
@@ -1345,7 +1349,7 @@ void QueueNotification(unsigned int soundEffectNum, byte priority) {
   // earlier hardware, you'll need an array of VoicePromptLengths for each prompt
   // played (for queueing and ducking)
 //  Audio.QueuePrioritizedNotification(soundEffectNum, VoicePromptLengths[soundEffectNum-SOUND_EFFECT_VP_VOICE_NOTIFICATIONS_START], priority, CurrentTime);
-  Audio.QueuePrioritizedNotification(soundEffectNum, 0, priority, CurrentTime);
+  //Audio.QueuePrioritizedNotification(soundEffectNum, 0, priority, CurrentTime);
 
 }
 
@@ -1528,13 +1532,13 @@ int RunAttractMode(int curState, boolean curStateChanged) {
     AttractLastPlayfieldMode = 0;
     RPU_SetDisplayCredits(Credits, !FreePlayMode);
     for (byte count = 0; count < 4; count++) {
-//      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
+      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
     }
 
-//    RPU_SetLampState(LAMP_HEAD_1_PLAYER, 0);
-//    RPU_SetLampState(LAMP_HEAD_2_PLAYERS, 0);
-//    RPU_SetLampState(LAMP_HEAD_3_PLAYERS, 0);
-//    RPU_SetLampState(LAMP_HEAD_4_PLAYERS, 0);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_1, 0);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_2, 0);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_3, 0);
+    RPU_SetLampState(LAMP_HEAD_PLAYER_4, 0);
 
     if (RPU_ReadSingleSwitchState(SW_EJECT_POCKET)) {
       RPU_PushToSolenoidStack(SOL_EJECT_POCKET, 16, true);
@@ -2047,7 +2051,7 @@ int ManageGameMode() {
             NumberOfBallsInPlay -= 1;
             if (NumberOfBallsInPlay==0) {
               ShowPlayerScores(0xFF, false, false);
-              Audio.StopAllAudio();
+              //Audio.StopAllAudio();
               returnState = MACHINE_STATE_COUNTDOWN_BONUS;
             }
           }
@@ -2330,9 +2334,9 @@ int HandleSystemSwitches(int curState, byte switchHit) {
           RPU_SetDisableFlippers(true);
           RPU_TurnOffAllLamps();
           RPU_SetLampState(LAMP_HEAD_TILT, 1);
-          Audio.StopAllAudio();
+          //Audio.StopAllAudio();
         }
-        PlaySoundEffect(SOUND_EFFECT_TILT_WARNING);
+        //PlaySoundEffect(SOUND_EFFECT_TILT_WARNING);
       }
       break;  
   }
@@ -2556,6 +2560,6 @@ void loop() {
   }
 
   RPU_Update(CurrentTime);
-  Audio.Update(CurrentTime);
+  //Audio.Update(CurrentTime);
 
 }
