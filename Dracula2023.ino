@@ -97,6 +97,22 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_COIN_DROP_3        102
 #define SOUND_EFFECT_MACHINE_START      120
 
+#if (RPU_MPU_ARCHITECTURE<10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
+// This array maps the self-test modes to audio callouts
+unsigned short SelfTestStateToCalloutMap[34] = {  136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 150, 151, 152,
+                                                  153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166 };
+#elif (RPU_MPU_ARCHITECTURE<10) && defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
+unsigned short SelfTestStateToCalloutMap[31] = {  136, 137, 135, 134, 133, 140, 141, 142, 139, 143, 144, 145, 146, 147, 148, 149, 138, 
+                                                  153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166 };
+#elif (RPU_MPU_ARCHITECTURE>=10) && !defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
+// This array maps the self-test modes to audio callouts
+unsigned short SelfTestStateToCalloutMap[34] = {  134, 135, 133, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152,
+                                                  153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166 };
+#elif (RPU_MPU_ARCHITECTURE>=10) && defined(RPU_OS_DISABLE_CPC_FOR_SPACE)
+unsigned short SelfTestStateToCalloutMap[34] = {  134, 135, 133, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 
+                                                  153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166 };
+#endif
+
 #define SOUND_EFFECT_SELF_TEST_MODE_START             132
 #define SOUND_EFFECT_SELF_TEST_CPC_START              180
 #define SOUND_EFFECT_SELF_TEST_AUDIO_OPTIONS_START    190
@@ -125,12 +141,23 @@ boolean MachineStateChanged = true;
 #define SOUND_EFFECT_VP_SHOOT_AGAIN         310
 
 
-#define SOUND_EFFECT_DIAG_SELECTOR_SWITCH_ON                      500
-#define SOUND_EFFECT_DIAG_SELECTOR_SWITCH_OFF                     501
-#define SOUND_EFFECT_DIAG_CREDIT_RESET_BUTTON                     502
-#define SOUND_EFFECT_DIAG_STARTING_DIAGNOSTICS_MODE               503
-#define SOUND_EFFECT_DIAG_STARTING_ORIGINAL_CODE                  504
-#define SOUND_EFFECT_DIAG_STARTING_NEW_CODE                       505
+#define SOUND_EFFECT_DIAG_START                   1900
+#define SOUND_EFFECT_DIAG_CREDIT_RESET_BUTTON     1900
+#define SOUND_EFFECT_DIAG_SELECTOR_SWITCH_ON      1901
+#define SOUND_EFFECT_DIAG_SELECTOR_SWITCH_OFF     1902
+#define SOUND_EFFECT_DIAG_STARTING_ORIGINAL_CODE  1903
+#define SOUND_EFFECT_DIAG_STARTING_NEW_CODE       1904
+#define SOUND_EFFECT_DIAG_ORIGINAL_CPU_DETECTED   1905
+#define SOUND_EFFECT_DIAG_ORIGINAL_CPU_RUNNING    1906
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_U10         1907
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_U11         1908
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_1           1909
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_2           1910
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_3           1911
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_4           1912
+#define SOUND_EFFECT_DIAG_PROBLEM_PIA_5           1913
+#define SOUND_EFFECT_DIAG_STARTING_DIAGNOSTICS_MODE   1914
+
 
 #define MAX_DISPLAY_BONUS     10
 #define TILT_WARNING_DEBOUNCE_TIME      1000
@@ -233,7 +260,7 @@ void ReadStoredParameters() {
     ChuteCoinsInProgress[count] = 0;
   }
  
-  HighScore = RPU_ReadULFromEEProm(RPU_HIGHSCORE_EEPROM_START_BYTE, 19999);
+  HighScore = RPU_ReadULFromEEProm(RPU_HIGHSCORE_EEPROM_START_BYTE, 10000);
   Credits = RPU_ReadByteFromEEProm(RPU_CREDITS_EEPROM_BYTE);
   if (Credits > MaximumCredits) Credits = MaximumCredits;
 
@@ -329,7 +356,17 @@ void setup() {
 
   // Set up the chips and interrupts
   unsigned long initResult = 0;
-  initResult = RPU_InitializeMPU(RPU_CMD_BOOT_NEW | RPU_CMD_INIT_AND_RETURN_EVEN_IF_ORIGINAL_CHOSEN | RPU_CMD_PERFORM_MPU_TEST/*, SW_CREDIT_RESET*/);
+  if (DEBUG_MESSAGES) Serial.write("Initializing MPU\n");
+#if (RPU_OS_HARDWARE_REV<4)
+  // These hardware revs don't have the ability to check Credit/Reset switch while holding
+  // the MPU in Reset, so we have to choose original/new code with a physical switch
+  initResult = RPU_InitializeMPU(RPU_CMD_BOOT_ORIGINAL | RPU_CMD_BOOT_NEW_IF_SWITCH_CLOSED | RPU_CMD_INIT_AND_RETURN_EVEN_IF_ORIGINAL_CHOSEN | RPU_CMD_PERFORM_MPU_TEST);
+#else
+  // For Rev 4 and greater, the Credit/Reset button can choose original (hold while powering on)
+  // and the physical switch is just a backup in case the operator wants to force original
+  // code to boot.
+  initResult = RPU_InitializeMPU(RPU_CMD_BOOT_ORIGINAL_IF_CREDIT_RESET | RPU_CMD_INIT_AND_RETURN_EVEN_IF_ORIGINAL_CHOSEN | RPU_CMD_PERFORM_MPU_TEST | RPU_CMD_BOOT_ORIGINAL_IF_SWITCH_CLOSED, SW_CREDIT_RESET);
+#endif
 
   if (DEBUG_MESSAGES) {
     char buf[128];
@@ -357,6 +394,7 @@ void setup() {
   }
 
   if (initResult & RPU_RET_ORIGINAL_CODE_REQUESTED) {
+     delay(100); // allow messages about selector switch to start before starting another message
     //QueueDIAGNotification(SOUND_EFFECT_DIAG_STARTING_ORIGINAL_CODE);
     //while (Audio.Update(millis()));
     // Arduino should hang if original code is running
@@ -454,8 +492,10 @@ void ShowShootAgainLamps() {
     unsigned long msRemaining = 5000;
     if (BallSaveEndTime!=0) msRemaining = BallSaveEndTime - CurrentTime;
     RPU_SetLampState(LAMP_SHOOT_AGAIN, 1, 0, (msRemaining < 5000) ? 100 : 500);
+    // RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, 1, 0, (msRemaining < 5000) ? 100 : 500);
   } else {
     RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
+    // RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
   }
 }
 
@@ -917,6 +957,7 @@ boolean AwardExtraBall() {
   } else {
     SamePlayerShootsAgain = true;
     RPU_SetLampState(LAMP_SHOOT_AGAIN, SamePlayerShootsAgain);
+    // RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, SamePlayerShootsAgain);
     QueueNotification(SOUND_EFFECT_VP_EXTRA_BALL, 8);
   }
   return true;
@@ -1012,7 +1053,6 @@ unsigned long SoundSettingTimeout = 0;
 unsigned long AdjustmentScore;
 
 
-
 int RunSelfTest(int curState, boolean curStateChanged) {
   int returnState = curState;
   CurrentNumPlayers = 0;
@@ -1043,7 +1083,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     if (curState==MACHINE_STATE_ADJUST_CPC_CHUTE_2) chuteNum = 1;
     if (curState==MACHINE_STATE_ADJUST_CPC_CHUTE_3) chuteNum = 2;
     if (chuteNum!=0xFF) cpcSelection = GetCPCSelection(chuteNum);
-    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_BUTTON, SW_SLAM_TILT);
+    returnState = RunBaseSelfTest(returnState, curStateChanged, CurrentTime, SW_CREDIT_RESET, SW_SLAM_TILT);
     if (chuteNum!=0xFF) {
       if (cpcSelection != GetCPCSelection(chuteNum)) {
         byte newCPC = GetCPCSelection(chuteNum);
@@ -1178,7 +1218,7 @@ int RunSelfTest(int curState, boolean curStateChanged) {
     }
 
     // Change value, if the switch is hit
-    if (curSwitch == SW_CREDIT_BUTTON) {
+    if (curSwitch == SW_CREDIT_RESET) {
 
       if (CurrentAdjustmentByte && (AdjustmentType == ADJ_TYPE_MIN_MAX || AdjustmentType == ADJ_TYPE_MIN_MAX_DEFAULT)) {
         byte curVal = *CurrentAdjustmentByte;
@@ -1532,13 +1572,13 @@ int RunAttractMode(int curState, boolean curStateChanged) {
     AttractLastPlayfieldMode = 0;
     RPU_SetDisplayCredits(Credits, !FreePlayMode);
     for (byte count = 0; count < 4; count++) {
-      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
+//      RPU_SetLampState(LAMP_HEAD_PLAYER_1_UP + count, 0);
     }
 
-    RPU_SetLampState(LAMP_HEAD_PLAYER_1, 0);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_2, 0);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_3, 0);
-    RPU_SetLampState(LAMP_HEAD_PLAYER_4, 0);
+//    RPU_SetLampState(LAMP_HEAD_1_PLAYER, 0);
+//    RPU_SetLampState(LAMP_HEAD_2_PLAYERS, 0);
+//    RPU_SetLampState(LAMP_HEAD_3_PLAYERS, 0);
+//    RPU_SetLampState(LAMP_HEAD_4_PLAYERS, 0);
 
     if (RPU_ReadSingleSwitchState(SW_EJECT_POCKET)) {
       RPU_PushToSolenoidStack(SOL_EJECT_POCKET, 16, true);
@@ -1560,6 +1600,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
   } else if ((CurrentTime / 8000) % 2 == 0) {
 
     if (AttractLastHeadMode != 2) {
+      // RPU_SetLampState(LAMP_HEAD_HIGH_SCORE, 1, 0, 250);
       RPU_SetLampState(LAMP_HEAD_GAME_OVER, 0);
       LastTimeScoreChanged = CurrentTime;
     }
@@ -1573,6 +1614,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
         }
         CurrentNumPlayers = 0;
       }
+      // RPU_SetLampState(LAMP_HEAD_HIGH_SCORE, 0);
       RPU_SetLampState(LAMP_HEAD_GAME_OVER, 1);
       LastTimeScoreChanged = CurrentTime;
     }
@@ -1596,7 +1638,7 @@ int RunAttractMode(int curState, boolean curStateChanged) {
 
   byte switchHit;
   while ( (switchHit = RPU_PullFirstFromSwitchStack()) != SWITCH_STACK_EMPTY ) {
-    if (switchHit == SW_CREDIT_BUTTON) {
+    if (switchHit == SW_CREDIT_RESET) {
       if (AddPlayer(true)) returnState = MACHINE_STATE_INIT_GAMEPLAY;
     }
     if (switchHit == SW_COIN_1 || switchHit == SW_COIN_2 || switchHit == SW_COIN_3) {
@@ -1604,7 +1646,11 @@ int RunAttractMode(int curState, boolean curStateChanged) {
       AddCoin(SwitchToChuteNum(switchHit));
     }
     if (switchHit == SW_SELF_TEST_SWITCH && (CurrentTime - GetLastSelfTestChangedTime()) > 250) {
+#if (RPU_MPU_ARCHITECTURE<10)
+      returnState = MACHINE_STATE_TEST_LAMPS;
+#else      
       returnState = MACHINE_STATE_TEST_BOOT;
+#endif      
       SetLastSelfTestChangedTime(CurrentTime);
     }
   }
@@ -1778,6 +1824,7 @@ int InitNewBall(bool curStateChanged) {
 
     if (BallSaveNumSeconds > 0) {
       RPU_SetLampState(LAMP_SHOOT_AGAIN, 1, 0, 500);
+      // RPU_SetLampState(LAMP_HEAD_SAME_PLAYER_SHOOTS_AGAIN, 1, 0, 500);
     }
 
     BallSaveUsed = false;
@@ -2294,7 +2341,11 @@ int HandleSystemSwitches(int curState, byte switchHit) {
   int returnState = curState;
   switch (switchHit) {
     case SW_SELF_TEST_SWITCH:
+#if (RPU_MPU_ARCHITECTURE<10)
+      returnState = MACHINE_STATE_TEST_LAMPS;
+#else      
       returnState = MACHINE_STATE_TEST_BOOT;
+#endif      
       SetLastSelfTestChangedTime(CurrentTime);
       break;
     case SW_COIN_1:
@@ -2303,7 +2354,7 @@ int HandleSystemSwitches(int curState, byte switchHit) {
       AddCoinToAudit(SwitchToChuteNum(switchHit));
       AddCoin(SwitchToChuteNum(switchHit));
       break;
-    case SW_CREDIT_BUTTON:
+    case SW_CREDIT_RESET:
       if (MachineState == MACHINE_STATE_MATCH_MODE) {
         // If the first ball is over, pressing start again resets the game
         if (Credits >= 1 || FreePlayMode) {
@@ -2468,7 +2519,7 @@ int RunGamePlayMode(int curState, boolean curStateChanged) {
       }
       CreditResetPressStarted = 0;
     } else {
-      if (RPU_ReadSingleSwitchState(SW_CREDIT_BUTTON)) {
+      if (RPU_ReadSingleSwitchState(SW_CREDIT_RESET)) {
         if (TimeRequiredToResetGame != 99 && (CurrentTime - CreditResetPressStarted) >= ((unsigned long)TimeRequiredToResetGame*1000)) {
           // If the first ball is over, pressing start again resets the game
           if (Credits >= 1 || FreePlayMode) {

@@ -52,7 +52,7 @@
 #define SW_LEFT_OUTLANE             2
 #define SW_LEFT_RETURN_LANE         3
 #define SW_1000_ADV_STAR            4
-#define SW_CREDIT_BUTTON            5
+#define SW_CREDIT_RESET            5
 #define SW_TILT                     6
 #define SW_OUTHOLE                  7
 #define SW_COIN_3                   8
